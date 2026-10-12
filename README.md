@@ -20,14 +20,23 @@
 
 ## 怎麼裝
 
-### macOS（我最後完成作業用的電腦）
+### macOS（我完成作業用的電腦：MacBook Pro M2）
 
-需要 [Homebrew](https://brew.sh)。在「終端機」執行：
+我的 Mac 沒有 Homebrew，所以用下載的方式安裝（有 Homebrew 的話可以 `brew install ollama cloudflared`）：
 
 ```
-python3 --version                 # 要 3.10 以上；沒有就 brew install python
-brew install ollama cloudflared   # 或到 ollama.com 下載 Ollama App
-ollama pull gemma4:e4b            # 約 6.6GB；記憶體 8GB 的 Mac 改用 gemma4:e2b
+python3 --version      # 要 3.10 以上（我的是 3.13.5）
+
+# Ollama：從 https://ollama.com/download 下載 Mac 版並打開，再把指令連到 ~/bin（不需要管理員密碼）
+mkdir -p ~/bin
+ln -sf /Applications/Ollama.app/Contents/Resources/ollama ~/bin/ollama
+
+# cloudflared：下載 Apple 晶片版
+curl -L -o cloudflared.tgz https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-darwin-arm64.tgz
+tar -xzf cloudflared.tgz && mv cloudflared ~/bin/ && rm cloudflared.tgz
+echo 'export PATH="$HOME/bin:$PATH"' >> ~/.zshrc && source ~/.zshrc
+
+ollama pull gemma4:e4b   # Mac 上是 9.5GB（Apple 晶片專用版）；記憶體 8GB 的 Mac 改用 gemma4:e2b
 git clone https://github.com/yh839103-cmd/line-bot-local
 cd line-bot-local
 ```
@@ -82,14 +91,29 @@ python3 line_bot_local.py      # Windows 用 python
 | 找不到 cloudflared | 終端機是安裝 cloudflared 之前開的 | 關掉終端機、開新的視窗 |
 | 換 Webhook 失敗 400：Invalid webhook endpoint URL | 通道網址剛建立，LINE 還查不到 | 程式改成自動重試（見「我改了什麼」） |
 | 推送 GitHub 時 403 | 學校電腦存的是別的 GitHub 帳號 | 推送網址指定自己的帳號 |
+| Mac 安裝 Ollama 指令要密碼，輸入失敗 | 安裝程式要把指令放進系統資料夾 | 改成把指令連到自己的 `~/bin`，不需要密碼 |
+| 前兩題回「timed out」 | 模型剛載入，第一次推論比較慢（超過程式的 60 秒上限） | 再問一次就好，熱身後約 20 秒 |
 
-## 目前進度（2026-10-12）
+## 實測結果（2026-10-12，MacBook Pro M2／24GB，gemma4:e4b）
 
-- [x] 在學校 Windows 電腦：Python、Ollama、gemma4:e4b、cloudflared 安裝完成，程式成功連上 LINE、模型載入顯示卡
+| 時間 | 事件 | 結果 |
+|---|---|---|
+| 14:00:29–14:00:46 | 換 Webhook：LINE 回「通道網址還沒生效」 | 自動重試 4 次（**我的修改派上用場**） |
+| 14:00:51 | 第 5 次換 Webhook | ✅ 成功，LINE 測試連線通了 |
+| 14:02、14:03 | 手機問「2026 年諾貝爾物理獎得主是誰？」 | ❌ timed out：模型剛載入，前兩題超過 60 秒 |
+| 14:04 | 同一題再問一次 | ✅ 模型自己決定上網搜尋，**23 秒**回覆並附來源 |
+| 14:04 | 問「國立東華大學 陳文盛 老師」 | ✅ 上網搜尋後 **18 秒**回覆 |
+| 結束 | 按 Ctrl+C | Webhook 換回原本的 Render 網址 |
+
+觀察：模型剛載入時第一、二題比較慢，熱身後搜尋加回答約 20 秒。
+
+## 進度
+
+- [x] 在學校 Windows 電腦：安裝完成，連上 LINE、模型載入顯示卡（換 Webhook 時遇到 400 錯誤）
 - [x] 修改程式：換 Webhook 失敗時自動重試
-- [ ] 在 Mac 上重新安裝並執行，接上 LINE
-- [ ] 手機實測：問需要上網查的問題，確認回覆附來源
-- [ ] 截圖：手機回覆＋同一時間的電腦終端機
+- [x] 在 Mac 上重新安裝並執行，成功接上 LINE
+- [x] 手機實測：問需要上網查的問題，回覆附來源
+- [x] 截圖：手機回覆＋同一時間的電腦終端機
 
 ## 安全注意
 
