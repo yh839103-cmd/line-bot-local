@@ -62,7 +62,7 @@ python line_bot_local.py
 
 - [x] Python 3.10、Node.js、Ollama 已安裝
 - [x] cloudflared 已安裝（version 2026.10.0）
-- [ ] 下載 `gemma4:e4b`（進行中）
+- [x] 下載 `gemma4:e4b`（6.6GB，完成）
 - [ ] 執行 `line_bot_local.py`，接上 LINE
 - [ ] 手機實測：問需要上網查的問題，確認回覆附來源
 - [ ] 截圖：手機回覆＋同一時間的電腦終端機
