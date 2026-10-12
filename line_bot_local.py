@@ -382,7 +382,14 @@ def main():
     try:  # 從開通道起就在 try 裡：只要 Webhook 換過，不管怎麼結束都會換回去
         url = open_tunnel()
         if url:
-            code, res = line("PUT", "/v2/bot/channel/webhook/endpoint", {"endpoint": url + "/callback"})
+            # 【我的修改】通道網址剛建立時，LINE 可能還查不到它而回「Invalid webhook endpoint URL」；
+            # 原版只試一次就放棄（Ctrl+C 也不會換回去），改成每 5 秒重試，最多 8 次。
+            for attempt in range(1, 9):
+                code, res = line("PUT", "/v2/bot/channel/webhook/endpoint", {"endpoint": url + "/callback"})
+                if code == 200 or "Invalid webhook endpoint" not in str(res):
+                    break
+                log(f"   通道網址還沒生效，5 秒後再試（{attempt}/8）")
+                time.sleep(5)
             if code != 200:
                 log(f"⚠️ 換 Webhook 失敗 {code}：{res}。可以手動貼到 LINE Developers：{url}/callback")
             else:
