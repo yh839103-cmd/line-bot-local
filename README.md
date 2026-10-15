@@ -1,9 +1,56 @@
 # LINE bot 接本地開源模型（W6 作業）
 
+這個 repo 有兩支程式：
+
+| 程式 | 作業 | 做什麼 |
+|---|---|---|
+| [`line_bot_lite.py`](line_bot_lite.py) | **W6 回家作業：輕量版** | 只回答文字問題；有「模擬模式」，不接 LINE 也能在終端機測試 |
+| [`line_bot_local.py`](line_bot_local.py) | W6 課堂作業 | 接真的 LINE，模型會上網搜尋、附來源 |
+
+---
+
+## W6 回家作業：LINE bot 輕量版（`line_bot_lite.py`）
+
+### 怎麼裝
+
+- Python 3（只用內建功能，不用 `pip install`）
+- Ollama，並拉一個模型：
+  ```
+  ollama pull gemma4:e2b     # 程式預設的模型（4.6 GB），沒有顯示卡也跑得動
+  ```
+  我的 Mac 上週已經裝好 `gemma4:e4b`，所以直接用它，不用再下載。
+- 下載這個 repo：`git clone https://github.com/yh839103-cmd/line-bot-local`，再 `cd line-bot-local`
+
+### 怎麼跑
+
+- **關卡 A：模擬模式**（不接 LINE、不用任何金鑰）
+  ```
+  export MODEL=gemma4:e4b             # 換成我已經有的模型（Windows：$env:MODEL="gemma4:e4b"）
+  python3 line_bot_lite.py --simulate
+  ```
+  看到「📱 你：」就可以打字問問題，打 `quit` 結束。
+- 選做，讓它上網查：`python3 line_bot_lite.py --simulate --search`（要先 `ollama signin`）
+- 關卡 B，真的接 LINE：`python3 line_bot_lite.py`
+  - 需要 cloudflared、LINE 長效通行碼和 Channel secret
+  - 金鑰在開程式時才貼上，**不存進檔案**
+  - 結束時按 **Ctrl+C**，Webhook 會換回原本的網址
+
+### 我改了什麼、跑起來怎樣
+
+- 模型：`gemma4:e4b`。程式預設是 `e2b`，我用環境變數 `MODEL` 換成電腦上已經有的 `e4b`，程式本身沒改。
+- 電腦：MacBook Pro M2、記憶體 24 GB。沒有獨立顯示卡，Ollama 用 Apple 晶片內建的 GPU。
+- 一題約 __ 秒（關卡 A 實測後填入）。上週課堂版上網搜尋加回答約 18–23 秒。
+- 改了：`line_bot_lite.py` 沒改。課堂版 `line_bot_local.py` 改成換 Webhook 失敗時自動重試，說明在下面。
+- 卡在：模型剛載入時第一題比較慢，課堂版前兩題 timed out，熱身後就正常。
+
+---
+
+## W6 課堂作業：接真 LINE、會上網查（`line_bot_local.py`）
+
 讓 LINE bot 用**跑在自己電腦上的開源模型**（Ollama 的 Gemma 4，`gemma4:e4b`）回答問題。
 需要最新資訊時，模型會自己上網搜尋，回覆最後附上來源網址。
 
-整個 bot 只有一支 Python 程式：[`line_bot_local.py`](line_bot_local.py)（課程提供的原版）。
+課堂版的 bot 只有一支 Python 程式：[`line_bot_local.py`](line_bot_local.py)，是課程提供的版本，加上我的修改。
 
 ## 運作方式
 
