@@ -58,7 +58,7 @@ function handleEvent(event) {
       if (GREETING.test(text)) return replyLine(event.replyToken, HELP_TEXT);  // 打招呼不必問 AI，直接回
       const asked = text.match(SEARCH_PREFIX);
       if (asked) {  // W7 新增：查詢不是待辦——不問 Gemini、不寫表，交給本地模型
-        showLoading(event.source);
+        showLoading(event.source, 60);  // 退回後修改：本地模型上網查常要 20–40 秒，動畫給 60 秒
         return replyLine(event.replyToken, askLocalSearch(asked[1].trim()));
       }
       showLoading(event.source);
@@ -294,10 +294,10 @@ function replyLine(replyToken, text) {
 }
 
 // 「對方正在輸入…」動畫：只有一對一聊天看得到，沒開成也不影響功能
-function showLoading(source) {
+function showLoading(source, seconds) {
   if (!source || source.type !== "user") return;
   try {
-    lineApi("/v2/bot/chat/loading/start", { chatId: source.userId, loadingSeconds: 20 });
+    lineApi("/v2/bot/chat/loading/start", { chatId: source.userId, loadingSeconds: seconds || 20 });
   } catch (err) {
     console.warn("輸入中動畫沒開成：", err);
   }
